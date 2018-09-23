@@ -195,13 +195,23 @@ function markerStyle(_, styleHash) {
         iconSize(_), [['id', styleHash]]);
 }
 
+var dataUrlRegexp = /^\s*data:([a-z]+\/[a-z]+(;[a-z\-]+\=[a-z\-]+)?)?(;base64)?,[a-z0-9\!\$\&\'\,\(\)\*\+\,\;\=\-\.\_\~\:\@\/\?\%\s]*\s*$/i;
+
 function iconUrl(_) {
     var size = _['marker-size'] || 'medium',
-        symbol = _['marker-symbol'] ? '-' + _['marker-symbol'] : '',
-        color = (_['marker-color'] || '7e7e7e').replace('#', '');
+        symbol = _['marker-symbol'] ? _['marker-symbol'] : '',
+        color = (_['marker-color'] || '7e7e7e').replace('#', ''),
+        url;
 
-    return 'https://api.tiles.mapbox.com/v3/marker/' + 'pin-' + size.charAt(0) +
-        symbol + '+' + color + '.png';
+    if (symbol && dataUrlRegexp.test(symbol)) {
+        url = symbol;
+    } else {
+        symbol = "-" + symbol;
+        url = 'https://api.tiles.mapbox.com/v3/marker/' + 'pin-' + size.charAt(0) +
+                symbol + '+' + color + '.png';
+    }
+
+    return url;
 }
 
 function iconSize(_) {
@@ -243,11 +253,23 @@ function polygonAndLineStyle(_, styleHash) {
     return tag('Style', lineStyle + polyStyle, [['id', styleHash]]);
 }
 
+var styleIdsByMarkerSymbol = {},
+    currentId = 1;
+function styleIdForMarkerSymbol (markerSymbol) {
+    if (!styleIdsByMarkerSymbol.hasOwnProperty(markerSymbol)) {
+        currentId++;
+        styleIdsByMarkerSymbol[markerSymbol] = currentId;
+    }
+    return styleIdsByMarkerSymbol[markerSymbol];
+}
+
 // ## Style helpers
 function hashStyle(_) {
     var hash = '';
     
-    if (_['marker-symbol']) hash = hash + 'ms' + _['marker-symbol'];
+    if (_['marker-symbol']) {
+        hash = hash + 'ms' + styleIdForMarkerSymbol(_['marker-symbol']);
+    }
     if (_['marker-color']) hash = hash + 'mc' + _['marker-color'].replace('#', '');
     if (_['marker-size']) hash = hash + 'ms' + _['marker-size'];
     if (_['stroke']) hash = hash + 's' + _['stroke'].replace('#', '');
