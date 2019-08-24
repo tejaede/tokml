@@ -39,6 +39,15 @@ function feature(options, styleHashesArray) {
                         styleHashesArray.push(styleHash);
                     }
                     styleReference = tag('styleUrl', '#' + styleHash);
+                    if (properties["marker-color"]) {
+                        delete properties["marker-color"];
+                    }
+                    if (properties["marker-size"]) {
+                        delete properties["marker-size"];
+                    }
+                    if (properties["marker-symbol"]) {
+                        delete properties["marker-symbol"];
+                    }
                 } else if ((geometry.isPolygon(_.geometry) || geometry.isLine(_.geometry)) && 
                     hasPolygonAndLineStyle(_.properties)) {
                     if (styleHashesArray.indexOf(styleHash) === -1) {
